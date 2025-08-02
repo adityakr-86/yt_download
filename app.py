@@ -16,7 +16,7 @@ def download_video_720p(url):
 
     with YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
-        return info['title']
+        return info['title'], ydl.prepare_filename(info)
 
 st.title("🎬 YouTube Video Downloader (720p)")
 url = st.text_input("📎 Paste YouTube Video URL:")
@@ -24,10 +24,22 @@ url = st.text_input("📎 Paste YouTube Video URL:")
 if st.button("Download"):
     if url:
         try:
-            with st.spinner("Downloading... Please wait"):
-                title = download_video_720p(url)
+            with st.spinner("📥 Downloading & Merging..."):
+                title, filepath = download_video_720p(url)
             st.success(f"✅ Downloaded: {title}")
-            st.info("📁 File is saved locally on the server (downloads folder)")
+            
+            # Read file content in binary
+            with open(filepath, "rb") as f:
+                video_data = f.read()
+
+            # Show download button
+            st.download_button(
+                label="⬇️ Click to Download Video",
+                data=video_data,
+                file_name=os.path.basename(filepath),
+                mime="video/mp4"
+            )
+
         except Exception as e:
             st.error(f"❌ Error: {e}")
     else:
